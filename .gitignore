@@ -19,6 +19,14 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Virtual machine crash logs
 hs_err_pid*
 replay_pid*
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Credenciais do banco de dados (use db_properties.example como referência)
+db.properties

@@ -1,0 +1,4 @@
+# Copie este arquivo para db.properties e preencha com suas credenciais
+user=SEU_USUARIO
+password=SUA_SENHA
+dburl=jdbc:mysql://localhost:3306/NOME_DO_BANCO?allowPublicKeyRetrieval=true&useSSL=false
