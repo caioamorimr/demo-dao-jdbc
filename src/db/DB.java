@@ -70,7 +70,7 @@ public class DB {
     private static Properties loadProperties() {
         try (InputStream is = DB.class.getClassLoader().getResourceAsStream("db.properties")) {
             if (is == null) {
-                throw new DbException("Properties file not found");
+                throw new DbException("db.properties not found in classpath");
             }
             Properties prop = new Properties();
             prop.load(is);
