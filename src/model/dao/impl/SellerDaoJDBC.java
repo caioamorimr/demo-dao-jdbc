@@ -2,6 +2,7 @@ package model.dao.impl;
 
 import db.DB;
 import db.DbException;
+import db.DbIntegrityException;
 import model.dao.SellerDao;
 import model.entities.Department;
 import model.entities.Seller;
@@ -106,7 +107,29 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void deleteById(Integer id) {
+        if (id == null) {
+            throw new DbException("Seller ID must not be null");
+        }
+        PreparedStatement pstmt = null;
+        try {
+            pstmt = conn.prepareStatement(
+                    "DELETE FROM seller " +
+                            "WHERE Id = ?"
+            );
 
+            pstmt.setInt(1, id);
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                throw new DbException("Id not found: " + id);
+            }
+
+        } catch (SQLException e) {
+            throw new DbIntegrityException(e.getMessage(), e);
+        } finally {
+            DB.closeStatement(pstmt);
+        }
     }
 
     @Override
