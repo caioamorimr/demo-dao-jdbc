@@ -6,10 +6,7 @@ import model.dao.SellerDao;
 import model.entities.Department;
 import model.entities.Seller;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +22,47 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void insert(Seller seller) {
+        if (seller == null) {
+            throw new DbException("Seller must not be null");
+        }
+        if (seller.getDepartment() == null || seller.getDepartment().getId() == null) {
+            throw new DbException("Seller's department and department ID must not be null");
+        }
+
+        PreparedStatement pstmt = null;
+
+        try {
+            pstmt = conn.prepareStatement(
+                    "INSERT INTO seller " +
+                            "(Name, Email, BirthDate, BaseSalary, DepartmentId) " +
+                            "VALUES " +
+                            "(?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
+            );
+
+            pstmt.setString(1, seller.getName());
+            pstmt.setString(2, seller.getEmail());
+            pstmt.setDate(3, Date.valueOf(seller.getBirthDate()));
+            pstmt.setDouble(4, seller.getBaseSalary());
+            pstmt.setInt(5, seller.getDepartment().getId());
+
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if (rs.next()) {
+                    seller.setId(rs.getInt(1));
+                }
+                DB.closeResultSet(rs);
+            } else {
+                throw new DbException("Unexpected error. No rows affected");
+            }
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage(), e);
+        } finally {
+            DB.closeStatement(pstmt);
+        }
 
     }
 
