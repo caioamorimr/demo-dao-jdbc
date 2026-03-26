@@ -16,6 +16,7 @@ public class Program {
         System.out.println("-----TEST 1: seller findById-----");
         Seller seller = sellerDao.findById(3);
         System.out.println(seller);
+        System.out.println();
 
         System.out.println("-----TEST 2: seller findByDepartment-----");
         Department department = new Department(2, null);
@@ -23,17 +24,28 @@ public class Program {
         for (Seller s : sellers) {
             System.out.println(s);
         }
+        System.out.println();
 
         System.out.println("-----TEST 3: seller findAll-----");
         sellers = sellerDao.findAll();
         for (Seller s : sellers) {
             System.out.println(s);
         }
+        System.out.println();
 
         System.out.println("-----TEST 4: seller insert-----");
         seller = new Seller(null, "Greg", "greg@email.com", LocalDate.of(2000, 12, 12), 4000.0, department);
         sellerDao.insert(seller);
         System.out.println("Inserted seller successfully. Id: " + seller.getId());
+        System.out.println();
+
+        System.out.println("-----TEST 5: seller update-----");
+        seller = sellerDao.findById(1);
+        seller.setName("Martha");
+        sellerDao.update(seller);
+        System.out.println("Updated seller successfully. Id: " + seller.getId());
+        System.out.println();
+
 
     }
 }
