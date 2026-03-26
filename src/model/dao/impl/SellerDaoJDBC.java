@@ -7,7 +7,12 @@ import model.dao.SellerDao;
 import model.entities.Department;
 import model.entities.Seller;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +36,6 @@ public class SellerDaoJDBC implements SellerDao {
         }
 
         PreparedStatement pstmt = null;
-
         try {
             pstmt = conn.prepareStatement(
                     "INSERT INTO seller " +
@@ -56,7 +60,7 @@ public class SellerDaoJDBC implements SellerDao {
                 }
                 DB.closeResultSet(rs);
             } else {
-                throw new DbException("Unexpected error. No rows affected");
+                throw new DbException("Error while inserting seller");
             }
 
         } catch (SQLException e) {
@@ -64,7 +68,6 @@ public class SellerDaoJDBC implements SellerDao {
         } finally {
             DB.closeStatement(pstmt);
         }
-
     }
 
     @Override
@@ -102,7 +105,6 @@ public class SellerDaoJDBC implements SellerDao {
         } finally {
             DB.closeStatement(pstmt);
         }
-
     }
 
     @Override
@@ -110,6 +112,7 @@ public class SellerDaoJDBC implements SellerDao {
         if (id == null) {
             throw new DbException("Seller ID must not be null");
         }
+
         PreparedStatement pstmt = null;
         try {
             pstmt = conn.prepareStatement(
@@ -134,6 +137,10 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public Seller findById(Integer id) {
+        if (id == null) {
+            throw new DbException("Seller ID must not be null");
+        }
+
         PreparedStatement pstmt = null;
         ResultSet rs = null;
         try {
@@ -148,8 +155,7 @@ public class SellerDaoJDBC implements SellerDao {
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                Department department = instantiateDepartment(rs);
-                return instantiateSeller(rs, department);
+                return instantiateSeller(rs, instantiateDepartment(rs));
             }
 
             throw new DbException("Id not found: " + id);
@@ -160,24 +166,6 @@ public class SellerDaoJDBC implements SellerDao {
             DB.closeResultSet(rs);
             DB.closeStatement(pstmt);
         }
-    }
-
-    private Department instantiateDepartment(ResultSet rs) throws SQLException {
-        Department department = new Department();
-        department.setId(rs.getInt("DepartmentId"));
-        department.setName(rs.getString("DepName"));
-        return department;
-    }
-
-    private Seller instantiateSeller(ResultSet rs, Department department) throws SQLException {
-        Seller seller = new Seller();
-        seller.setId(rs.getInt("Id"));
-        seller.setName(rs.getString("Name"));
-        seller.setEmail(rs.getString("Email"));
-        seller.setBaseSalary(rs.getDouble("BaseSalary"));
-        seller.setBirthDate(rs.getDate("BirthDate").toLocalDate());
-        seller.setDepartment(department);
-        return seller;
     }
 
     @Override
@@ -198,15 +186,20 @@ public class SellerDaoJDBC implements SellerDao {
             Map<Integer, Department> departments = new HashMap<>();
 
             while (rs.next()) {
-                Department dept = departments.get(rs.getInt("DepartmentId"));
-                if (dept == null) {
-                    dept = instantiateDepartment(rs);
-                    departments.put(rs.getInt("DepartmentId"), dept);
-                }
-
-                Seller seller = instantiateSeller(rs, dept);
-                sellers.add(seller);
+                final ResultSet currentRs = rs;
+                Department dept = departments.computeIfAbsent(
+                        rs.getInt("DepartmentId"),
+                        k -> {
+                            try {
+                                return instantiateDepartment(currentRs);
+                            } catch (SQLException e) {
+                                throw new DbException(e.getMessage(), e);
+                            }
+                        }
+                );
+                sellers.add(instantiateSeller(rs, dept));
             }
+
             return sellers;
 
         } catch (SQLException e) {
@@ -241,15 +234,18 @@ public class SellerDaoJDBC implements SellerDao {
             Map<Integer, Department> departments = new HashMap<>();
 
             while (rs.next()) {
-                Department dept = departments.get(rs.getInt("DepartmentId"));
-
-                if (dept == null) {
-                    dept = instantiateDepartment(rs);
-                    departments.put(rs.getInt("DepartmentId"), dept);
-                }
-
-                Seller seller = instantiateSeller(rs, dept);
-                sellers.add(seller);
+                final ResultSet currentRs = rs;
+                Department dept = departments.computeIfAbsent(
+                        rs.getInt("DepartmentId"),
+                        k -> {
+                            try {
+                                return instantiateDepartment(currentRs);
+                            } catch (SQLException e) {
+                                throw new DbException(e.getMessage(), e);
+                            }
+                        }
+                );
+                sellers.add(instantiateSeller(rs, dept));
             }
 
             return sellers;
@@ -260,5 +256,20 @@ public class SellerDaoJDBC implements SellerDao {
             DB.closeResultSet(rs);
             DB.closeStatement(pstmt);
         }
+    }
+
+    private Department instantiateDepartment(ResultSet rs) throws SQLException {
+        return new Department(rs.getInt("DepartmentId"), rs.getString("DepName"));
+    }
+
+    private Seller instantiateSeller(ResultSet rs, Department department) throws SQLException {
+        return new Seller(
+                rs.getInt("Id"),
+                rs.getString("Name"),
+                rs.getString("Email"),
+                rs.getDate("BirthDate").toLocalDate(),
+                rs.getDouble("BaseSalary"),
+                department
+        );
     }
 }
