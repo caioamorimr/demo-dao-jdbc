@@ -12,6 +12,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,6 +64,8 @@ public class SellerDaoJDBC implements SellerDao {
                 throw new DbException("Error while inserting seller");
             }
 
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw new DbIntegrityException("Email already exists. Please use another email.", e);
         } catch (SQLException e) {
             throw new DbException(e.getMessage(), e);
         } finally {
@@ -100,6 +103,8 @@ public class SellerDaoJDBC implements SellerDao {
                 throw new DbException("Id not found: " + seller.getId());
             }
 
+        } catch (SQLIntegrityConstraintViolationException e) {
+            throw new DbIntegrityException("Email already exists. Please use another email.", e);
         } catch (SQLException e) {
             throw new DbException(e.getMessage(), e);
         } finally {
