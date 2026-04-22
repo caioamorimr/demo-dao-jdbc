@@ -3,6 +3,12 @@
 Projeto de demonstração do padrão **DAO (Data Access Object)** com **JDBC** em Java.  
 Desenvolvido como material de estudo para entender como separar a lógica de acesso a dados das regras de negócio, utilizando uma estrutura simples e funcional.
 
+## Sobre este Projeto
+
+> **Nota:** Este é um projeto de estudo focado exclusivamente nos fundamentos do **JDBC puro** e no padrão **DAO**, sem o uso de frameworks como Spring. O objetivo foi consolidar o entendimento de como a ponte entre Java e bancos de dados relacionais funciona em sua essência.
+
+Este conhecimento foi fundamental para a construção de projetos mais complexos e modernos, como a API de Gerenciamento de Pedidos [`order-management-api`](https://github.com/caioamorimr/order-management-api), que utiliza **Spring Boot, JPA/Hibernate, testes automatizados e outras práticas de mercado**.
+
 ## Objetivo
 
 Este projeto implementa um sistema de cadastro de **vendedores** e **departamentos**, permitindo operações básicas de CRUD (Create, Read, Update, Delete) por meio de um menu interativo no console.  
